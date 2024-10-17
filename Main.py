@@ -126,9 +126,10 @@ while run:
         painting.append((active_color, mouse, active_size))
         
     if right_click:
-        active_size = 15
-        active_color = 'white'    
-        painting.append((active_color, mouse, active_size))
+        # active_size = 15
+        # active_color = 'white'    
+        # painting.append((active_color, mouse, active_size))
+        painting= []
     
     
     draw(painting)
