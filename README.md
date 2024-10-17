@@ -1,7 +1,8 @@
 # Identify-Doodles-CNN
 
-Identify drawing pictures of 5 objects, animals: Plane/ Bird/ Car/ Cat/ Dog.
+Purpose: Identify drawing pictures of 5 objects, animals: Plane/ Bird/ Car/ Cat/ Dog.
 
-I trained a simple CNN using MobileNetV1 architecture for saving computational time.
+Processes:
+1. Trained a simple CNN using MobileNetV1 architecture on open source doodles images by Google.
 
-Then created a tool that takes user drawing to predict the object or animal.
+2. Create a tool that takes user drawing to predict the object or animal.
