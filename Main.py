@@ -60,7 +60,7 @@ def guess():
                  transforms.Resize((224,224)),
                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     
-    img_dir = r"C:\Users\baolo\Desktop\Lab\Test Project\Img"
+    img_dir = r"Img"
     
     img_data = datasets.ImageFolder(img_dir,transform = transform)
     
