@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 from torchvision import transforms, datasets
+import sys
 
 class MobileNetV1(nn.Module):
     def __init__(self, ch_in, n_classes):
@@ -52,24 +53,6 @@ class MobileNetV1(nn.Module):
         x = self.fc(x)
         return x
 
-import pygame
-
-pygame.init()
-
-H = 254
-W = 254
-fps = 50000
-
-timer = pygame.time.Clock()
-screen = pygame.display.set_mode([H,W])
-
-pygame.display.set_caption('Paint!')
-
-run = True
-
-painting = []
-remove_list = []
-
 def guess():
     
     transform = transforms.Compose(
@@ -77,75 +60,103 @@ def guess():
                  transforms.Resize((224,224)),
                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     
-    img_dir = r"C:\Users\baolo\Desktop\Lab\Test Project\SCs"
+    img_dir = r"C:\Users\baolo\Desktop\Lab\Test Project\Img"
     
     img_data = datasets.ImageFolder(img_dir,transform = transform)
     
+    img_loader = torch.utils.data.DataLoader(img_data)
+      
     
-    img_loader = torch.utils.data.DataLoader(img_data,
-                                             batch_size=1
-                                             )
-        
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = MobileNetV1(3,5).to(device)
-    checkpoint = torch.load('Checkpointv18.pt', weights_only=True)
+    checkpoint = torch.load('checkpoint28.pt', weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
     class_labels = ['airplane','bird','car','cat','dog']
     with torch.no_grad():
         for image, _ in img_loader:
+            
             image = image.to(device)
+            
             outputs = model(image)
             _, predicted = torch.max(outputs.data, 1)
             print(class_labels[predicted])
             print(outputs)
             del image, outputs
         
-        
-def draw(paints):
-    for i in range(len(paints)):
-        pygame.draw.circle(screen, paints[i][0], paints[i][1], paints[i][2])
+import pygame
+import matplotlib.pyplot as plt
 
+pygame.init()
 
-while run:
-    timer.tick(fps)
-    screen.fill('white')
-    mouse = pygame.mouse.get_pos()
+H = 300
+W = 300
+
+screen = pygame.display.set_mode([H,W])
+screen.fill('black')
+
+pygame.display.set_caption('Paint!')
+
+drawing = False
+last_pos = None
+
+mouse_position = (0,0)
+
+# def center(array):
+#     cen_x = 0
+#     cen_y = 0
+#     for x,y in array:
+#         cen_x += x
+#         cen_y += y
+#     cen_x /= len(array)
+#     cen_y /= len(array)
+#     pygame.draw.circle(screen,'red',(cen_x,cen_y),3)
     
-    left_click = pygame.mouse.get_pressed()[0]
-    middle_click = pygame.mouse.get_pressed()[1]
-    right_click = pygame.mouse.get_pressed()[2]
+# all_pos = []
+
+while True:
     
-    active_size = 1
-    active_color = 'black'           
+    active_size = 5
+    active_color = 'white'           
     
-    pygame.draw.circle(screen, active_color, mouse, active_size)
-    
-    if left_click:
-        painting.append((active_color, mouse, active_size))
-        
-    if right_click:
-        # active_size = 15
-        # active_color = 'white'    
-        # painting.append((active_color, mouse, active_size))
-        painting= []
-    
-    
-    draw(painting)
-    
+    # pygame.draw.circle(screen,'blue',(127,127),3)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.MOUSEMOTION:
+            if (drawing):
+                mouse_position = pygame.mouse.get_pos()
+                if last_pos is not None:
+                    
+                    pygame.draw.line(screen, 'white', last_pos, mouse_position, active_size)
+                    # all_pos.append(last_pos)
+                    
+                last_pos = mouse_position
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            mouse_position = (0, 0)
+            drawing = False
+            last_pos = None
             
-            if event.button == 2: # 2 == middle button
-                pygame.image.save(screen,"SCs/img/screenshot.png")
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                drawing = True
+                
+            elif event.button == 3:
+                screen.fill('black')
+                
+            elif event.button == 2:
+                pygame.image.save(screen,"Img/This folder/painting.png")
                 print("Processing")
                 guess()
+                # center(all_pos)
+                
+        elif event.type == pygame.KEYDOWN:        
+            if event.key == pygame.K_SPACE:
+                pass
     
-    pygame.display.flip()
-    timer.tick(fps)
-    
+    pygame.display.update()
+
 pygame.quit()
