@@ -73,27 +73,24 @@ def guess():
     checkpoint = torch.load('checkpoint28.pt', weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-    class_labels = ['airplane','bird','car','cat','dog']
+    class_labels = ['PLANE','BIRD','CAR','CAT','DOG']
     with torch.no_grad():
         for image, _ in img_loader:
-            
             image = image.to(device)
-            
             outputs = model(image)
             _, predicted = torch.max(outputs.data, 1)
-            print(class_labels[predicted])
-            print(outputs)
             del image, outputs
+            return(class_labels[predicted])
         
 import pygame
 import matplotlib.pyplot as plt
 
 pygame.init()
 
-H = 300
-W = 300
+H = 400
+W = 600
 
-screen = pygame.display.set_mode([H,W])
+screen = pygame.display.set_mode([W,H])
 screen.fill('black')
 
 pygame.display.set_caption('Paint!')
@@ -103,24 +100,28 @@ last_pos = None
 
 mouse_position = (0,0)
 
-# def center(array):
-#     cen_x = 0
-#     cen_y = 0
-#     for x,y in array:
-#         cen_x += x
-#         cen_y += y
-#     cen_x /= len(array)
-#     cen_y /= len(array)
-#     pygame.draw.circle(screen,'red',(cen_x,cen_y),3)
-    
-# all_pos = []
+font = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 20)
+guess_text = font.render('THIS IS A ...', True, (226, 241, 231),'black')
+guessing = False
+
+
+def give_answer():
+    font2 = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 35)
+    answer = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
+    screen.blit(answer, (465,200))
 
 while True:
     
     active_size = 5
     active_color = 'white'           
     
-    # pygame.draw.circle(screen,'blue',(127,127),3)
+    #Guess bar
+    pygame.draw.rect(screen, (36, 54, 66),[400,0,400,400])
+    screen.blit(guess_text, (450,150))
+    
+    if guessing:
+        give_answer()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -129,9 +130,8 @@ while True:
             if (drawing):
                 mouse_position = pygame.mouse.get_pos()
                 if last_pos is not None:
-                    
-                    pygame.draw.line(screen, 'white', last_pos, mouse_position, active_size)
-                    # all_pos.append(last_pos)
+                    if mouse_position[0]<400:
+                        pygame.draw.line(screen, 'white', last_pos, mouse_position, active_size)
                     
                 last_pos = mouse_position
                 
@@ -141,21 +141,21 @@ while True:
             last_pos = None
             
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            
             if event.button == 1:
                 drawing = True
+                guessing = False
                 
             elif event.button == 3:
+                guessing = False
                 screen.fill('black')
                 
             elif event.button == 2:
-                pygame.image.save(screen,"Img/This folder/painting.png")
+                rect = pygame.Rect(0, 0, 400, 400)
+                crop = screen.subsurface(rect)
+                pygame.image.save(crop, r"Img/This folder/painting.png") 
                 print("Processing")
-                guess()
-                # center(all_pos)
-                
-        elif event.type == pygame.KEYDOWN:        
-            if event.key == pygame.K_SPACE:
-                pass
+                guessing = True
     
     pygame.display.update()
 
