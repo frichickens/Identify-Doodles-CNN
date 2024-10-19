@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from torchvision import transforms, datasets
 import sys
+import pygame
 
 class MobileNetV1(nn.Module):
     def __init__(self, ch_in, n_classes):
@@ -27,7 +28,6 @@ class MobileNetV1(nn.Module):
                 nn.ReLU(inplace=True),
                 )
             
-        
         self.model = nn.Sequential(
             conv_bn(ch_in, 32, 2),      #(224, 224, 3) -> (112,112,32)   
             conv_dw(32, 64, 1),         #(112,112,32) -> (112,112,64)
@@ -66,11 +66,10 @@ def guess():
     
     img_loader = torch.utils.data.DataLoader(img_data)
       
-    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = MobileNetV1(3,5).to(device)
-    checkpoint = torch.load('checkpoint28.pt', weights_only=True)
+    checkpoint = torch.load('checkpoint121.pt', weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
     class_labels = ['PLANE','BIRD','CAR','CAT','DOG']
@@ -78,14 +77,15 @@ def guess():
         for image, _ in img_loader:
             image = image.to(device)
             outputs = model(image)
+            print((nn.functional.softmax(outputs, dim = 1)).cpu().numpy()*100)
             _, predicted = torch.max(outputs.data, 1)
             del image, outputs
             return(class_labels[predicted])
-        
-import pygame
-import matplotlib.pyplot as plt
 
 pygame.init()
+
+pygame_icon = pygame.image.load('Icon.png')
+pygame.display.set_icon(pygame_icon)
 
 H = 400
 W = 600
@@ -104,11 +104,9 @@ font = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 20)
 guess_text = font.render('THIS IS A ...', True, (226, 241, 231),'black')
 guessing = False
 
+answer = None
 
-def give_answer():
-    font2 = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 35)
-    answer = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
-    screen.blit(answer, (465,200))
+    
 
 while True:
     
@@ -120,7 +118,7 @@ while True:
     screen.blit(guess_text, (450,150))
     
     if guessing:
-        give_answer()
+        screen.blit(answer, (465,200))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -155,6 +153,9 @@ while True:
                 crop = screen.subsurface(rect)
                 pygame.image.save(crop, r"Img/This folder/painting.png") 
                 print("Processing")
+                font2 = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 35)
+                answer = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
+                print("==================")
                 guessing = True
     
     pygame.display.update()
