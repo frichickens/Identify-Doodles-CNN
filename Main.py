@@ -5,7 +5,6 @@ import sys
 import pygame
 import Model
 
-
 def guess():
     
     transform = transforms.Compose(
@@ -21,11 +20,14 @@ def guess():
       
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    model = Model.MobileNetV1(3,5).to(device)
-    checkpoint = torch.load('checkpoint121.pt', weights_only=True)
+    # model = Model.MobileNetV1(3,10).to(device)
+    checkpoint = torch.load('checkpoint44.pt', weights_only=True)
+    
+    model = nn.DataParallel(Model.MobileNetV1(ch_in = 3, n_classes = 10), device_ids = [0]).to(device)
+    
     model.load_state_dict(checkpoint['model_state_dict'])
     
-    class_labels = ['PLANE','BIRD','CAR','CAT','DOG']
+    class_labels = ['PLANE','APPLE','ARM','BANANA','BIRD','CAR','CAT','DOG','FISH','FOOT']
     
     model.eval()
     with torch.no_grad():
@@ -56,13 +58,17 @@ last_pos = None
 mouse_position = (0,0)
 
 font = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 20)
+
 guess_text = font.render('THIS IS A ...', True, (226, 241, 231),'black')
+guess_rect = guess_text.get_rect()
+guess_rect.center = (500,150)
+
 guessing = False
 
-answer = None
+answer_text = None
+answer_rect = None
 
     
-
 while True:
     
     active_size = 5
@@ -70,10 +76,10 @@ while True:
     
     #Guess bar
     pygame.draw.rect(screen, (36, 54, 66),[400,0,400,400])
-    screen.blit(guess_text, (450,150))
+    screen.blit(guess_text, guess_rect)
     
     if guessing:
-        screen.blit(answer, (465,200))
+        screen.blit(answer_text, answer_rect)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -109,7 +115,9 @@ while True:
                 pygame.image.save(crop, r"Img/This folder/painting.png") 
                 print("Processing")
                 font2 = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 35)
-                answer = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
+                answer_text = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
+                answer_rect = guess_text.get_rect()
+                answer_rect.center = (500,250)
                 print("==================")
                 guessing = True
     
