@@ -11,7 +11,7 @@ def guess():
                 [transforms.ToTensor(),
                  transforms.Resize((224,224)),
                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    
+        
     img_dir = r"Img"
     
     img_data = datasets.ImageFolder(img_dir,transform = transform)
@@ -20,14 +20,14 @@ def guess():
       
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # model = Model.MobileNetV1(3,10).to(device)
     checkpoint = torch.load('checkpoint44.pt', weights_only=True)
     
     model = nn.DataParallel(Model.MobileNetV1(ch_in = 3, n_classes = 10), device_ids = [0]).to(device)
     
     model.load_state_dict(checkpoint['model_state_dict'])
     
-    class_labels = ['PLANE','APPLE','ARM','BANANA','BIRD','CAR','CAT','DOG','FISH','FOOT']
+    class_labels = ['AIRPLANE','APPLE','ARM','BANANA',
+                    'BIRD','CAR','CAT','DOG','FISH','FOOT']
     
     model.eval()
     with torch.no_grad():
@@ -59,14 +59,17 @@ mouse_position = (0,0)
 
 font = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 20)
 
-guess_text = font.render('THIS IS A ...', True, (226, 241, 231),'black')
+guess_text = font.render('I THINK IT IS A', True, (226, 241, 231),'black')
 guess_rect = guess_text.get_rect()
 guess_rect.center = (500,150)
 
 guessing = False
 
 answer_text = None
-answer_rect = None
+answer_width = None
+answer_height = None
+answer_x_pos = None
+answer_y_pos = None
 
     
 while True:
@@ -79,7 +82,7 @@ while True:
     screen.blit(guess_text, guess_rect)
     
     if guessing:
-        screen.blit(answer_text, answer_rect)
+        screen.blit(answer_text, (answer_x_pos, answer_y_pos))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -116,8 +119,10 @@ while True:
                 print("Processing")
                 font2 = pygame.font.Font(r'C:\Windows\Fonts\ARLRDBD.ttf', 35)
                 answer_text = font2.render('{}'.format(guess()), True, (98, 149, 132),'black')
-                answer_rect = guess_text.get_rect()
-                answer_rect.center = (500,250)
+                answer_width = answer_text.get_width()
+                answer_height = answer_text.get_height()
+                answer_x_pos = 500 - answer_width // 2
+                answer_y_pos = 250 - answer_height // 2
                 print("==================")
                 guessing = True
     
