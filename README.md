@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/e8473547-8ccf-4a96-bf62-851879e7d498)# Identify-Doodles-CNN
+# Identify-Doodles-CNN
 
 Purpose: Identify drawing pictures of 10 objects, animals: Plane/ Bird/ Car/ Cat/ Dog/ Hand/ Foot/ Banana/ Apple/ Fish.
 
